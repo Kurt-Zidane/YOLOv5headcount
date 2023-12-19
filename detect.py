@@ -36,6 +36,7 @@ import sys
 from pathlib import Path
 
 import torch
+import cv2
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -150,6 +151,7 @@ def run(
                 writer.writerow(data)
 
         # Process predictions
+        head_count = 0
         for i, det in enumerate(pred):  # per image
             seen += 1
             if webcam:  # batch_size >= 1
@@ -196,6 +198,24 @@ def run(
                         annotator.box_label(xyxy, label, color=colors(c, True))
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+
+                    # Count heads (assuming head class has ID 0)
+                    if c == 0:
+                        head_count += 1
+
+
+                    # Draw head count on the image
+                    if view_img:
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        org = (50, 50)
+                        font_scale = 1
+                        color = (255, 0, 0)  # BGR color format
+                        thickness = 2
+                        image_with_count = cv2.putText(im0, f'Head Count: {head_count}', org, font, font_scale, color, thickness, cv2.LINE_AA)
+
+                        # Display the image
+                        cv2.imshow(str(p), image_with_count)
+                        cv2.waitKey(1)  # 1 millisecond
 
             # Stream results
             im0 = annotator.result()
